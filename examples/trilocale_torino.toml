@@ -1,0 +1,38 @@
+# Trilocale a Torino affittato a canone concordato, acquistato da privato con mutuo al 70%.
+# Esegui:  real-estate-analyzer --config examples/trilocale_torino.toml --cliente "Famiglia Bianchi"
+
+nome = "Trilocale Torino, zona San Salvario"
+
+[acquisto]
+prezzo = 160000
+rendita_catastale = 780
+agenzia = 0.03
+notaio = 2500
+ristrutturazione = 12000
+valore_mercato = 180000   # valore stimato dopo i lavori
+arredo = 6000
+
+[locazione]
+canone_mensile = 980
+crescita_canone = 0.02
+sfitto = 0.05
+canone_concordato = true   # cedolare al 10% e IMU ridotta del 25%
+regime = "cedolare"
+
+[spese]
+condominio = 900
+manutenzione = 800
+assicurazione = 220
+gestione = 0.0
+aliquota_imu = 0.0106
+
+[mutuo]
+ltv = 0.70
+tasso = 0.031
+durata_anni = 20
+
+[scenario]
+orizzonte = 12
+crescita_valore = 0.015
+costi_vendita = 0.03
+tasso_sconto = 0.05

@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "real-estate-analyzer"
+version = "0.1.0"
+description = "Valutazione di investimenti immobiliari (flussi di cassa, mutuo, fiscalità italiana, VAN/TIR, sensitività) con report per il cliente"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Francesco Torraco" }]
+keywords = ["real estate", "immobiliare", "DCF", "IRR", "cedolare secca", "wealth management"]
+dependencies = [
+    "numpy>=1.24",
+    "numpy-financial>=1.0",
+    "pandas>=2.0",
+    "plotly>=5.20",
+    "jinja2>=3.1",
+]
+
+[project.optional-dependencies]
+png = ["kaleido>=1.0"]
+notebook = ["jupyterlab>=4", "kaleido>=1.0"]
+dev = ["pytest>=7", "ruff>=0.4"]
+
+[project.scripts]
+real-estate-analyzer = "real_estate_analyzer.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+real_estate_analyzer = ["templates/*.j2"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+ignore = ["B905"]

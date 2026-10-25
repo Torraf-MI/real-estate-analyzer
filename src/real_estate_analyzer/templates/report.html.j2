@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Valutazione investimento immobiliare – {{ client }}</title>
+{% if plotly_inline %}<script>{{ plotly_inline | safe }}</script>{% else %}<script src="{{ plotly_cdn }}"></script>{% endif %}
+<style>
+  :root { --blu: #1f4e79; --grigio: #595959; --chiaro: #f2f5f9; }
+  body { font-family: "Segoe UI", Helvetica, Arial, sans-serif; color: #222; max-width: 980px;
+         margin: 0 auto; padding: 32px 16px 60px; line-height: 1.5; background: #fff; }
+  header { border-bottom: 3px solid var(--blu); padding-bottom: 12px; margin-bottom: 24px; }
+  h1 { color: var(--blu); margin: 0 0 4px; font-size: 1.7rem; }
+  h2 { color: var(--blu); font-size: 1.2rem; margin-top: 36px; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
+  .sub { color: var(--grigio); font-size: .95rem; }
+  .kpi { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin: 16px 0; }
+  .kpi div { background: var(--chiaro); border-radius: 8px; padding: 12px 14px; }
+  .kpi b { display: block; font-size: 1.45rem; color: var(--blu); }
+  .kpi span { font-size: .8rem; color: var(--grigio); text-transform: uppercase; letter-spacing: .03em; }
+  .esito { border-left: 5px solid; padding: 12px 16px; border-radius: 4px; margin: 16px 0; }
+  .esito.ok { border-color: #0ca30c; background: #eef8ee; }
+  .esito.attenzione { border-color: #fab219; background: #fff8e8; }
+  .esito.ko { border-color: #d03b3b; background: #fcefef; }
+  .esito b::before { margin-right: 6px; }
+  .esito.ok b::before { content: "✓"; color: #0ca30c; }
+  .esito.attenzione b::before { content: "!"; color: #b07800; }
+  .esito.ko b::before { content: "✕"; color: #d03b3b; }
+  .due { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; }
+  table { width: 100%; border-collapse: collapse; font-size: .9rem; margin: 10px 0; }
+  th, td { padding: 7px 10px; text-align: right; border-bottom: 1px solid #e5e5e5; }
+  th:first-child, td:first-child { text-align: left; }
+  th { background: var(--blu); color: #fff; font-weight: 600; }
+  tr:nth-child(even) td { background: #fafbfc; }
+  tr.forte td { font-weight: 600; }
+  td.desc { color: var(--grigio); font-size: .82rem; text-align: left; }
+  .scroll { overflow-x: auto; }
+  .scroll table { font-size: .8rem; white-space: nowrap; }
+  .grafico { margin: 14px 0; overflow: hidden; }
+  .note { font-size: .8rem; color: var(--grigio); background: var(--chiaro); padding: 12px 14px; border-radius: 6px; }
+  ul { padding-left: 20px; }
+  @media print { .grafico { break-inside: avoid; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Valutazione di un investimento immobiliare</h1>
+  <div class="sub"><b>{{ nome }}</b> · preparata per <b>{{ client }}</b> · {{ today }}</div>
+</header>
+
+<h2>Sintesi</h2>
+<div class="esito {{ esito }}"><b>Esito</b> {{ sintesi }}</div>
+<div class="kpi">
+  {% for label, value in kpi %}<div><span>{{ label }}</span><b>{{ value }}</b></div>{% endfor %}
+</div>
+
+<div class="due">
+<div>
+<h2>Ipotesi</h2>
+<table>
+  {% for label, value in ipotesi %}<tr><td>{{ label }}</td><td>{{ value }}</td></tr>{% endfor %}
+</table>
+</div>
+<div>
+<h2>Esborso iniziale</h2>
+<table>
+  {% for label, value in costi %}<tr><td>{{ label }}</td><td>{{ value }}</td></tr>{% endfor %}
+  <tr class="forte"><td>Costo complessivo</td><td>{{ costo_totale }}</td></tr>
+  <tr><td>meno mutuo</td><td>{{ importo_mutuo }}</td></tr>
+  <tr class="forte"><td>Capitale proprio</td><td>{{ capitale_proprio }}</td></tr>
+</table>
+</div>
+</div>
+
+<h2>Indicatori di redditività</h2>
+<table>
+  <tr><th>Indicatore</th><th>Valore</th><th style="text-align:left">Significato</th></tr>
+  {% for label, value, desc in indicatori %}
+  <tr><td>{{ label }}</td><td>{{ value }}</td><td class="desc">{{ desc }}</td></tr>
+  {% endfor %}
+</table>
+
+<h2>Flussi di cassa</h2>
+<div class="grafico">{{ grafici.cascata | safe }}</div>
+<div class="grafico">{{ grafici.flussi | safe }}</div>
+<div class="scroll">
+<table>
+  <tr><th>Anno</th>{% for a in anni %}<th>{{ a }}</th>{% endfor %}</tr>
+  {% for r in righe_flussi %}
+  <tr{% if r.forte %} class="forte"{% endif %}><td>{{ r.voce }}</td>{% for v in r.valori %}<td>{{ v }}</td>{% endfor %}</tr>
+  {% endfor %}
+</table>
+</div>
+<div class="grafico">{{ grafici.patrimonio | safe }}</div>
+
+<h2>Analisi di sensitività</h2>
+<p>Quanto cambia il rendimento se il prezzo negoziato o il canone ottenuto si discostano dalle ipotesi.
+Le celle in blu superano il rendimento richiesto, quelle in rosso restano sotto.</p>
+<div class="grafico">{{ grafici.griglia | safe }}</div>
+<p>Ogni barra mostra il TIR quando una sola ipotesi passa da un valore prudente a uno ottimista, a parità
+delle altre. La variabile più influente è la <b>{{ tornado_top }}</b>.</p>
+<div class="grafico">{{ grafici.tornado | safe }}</div>
+
+<h2>Scenari a confronto</h2>
+<div class="scroll">
+<table>
+  <tr><th>Scenario</th><th>Capitale proprio</th><th>Rend. netto</th><th>Cash-on-cash</th><th>VAN</th><th>TIR</th><th>Multiplo</th></tr>
+  {% for s in scenari %}
+  <tr><td>{{ s.nome }}</td><td>{{ s.capitale }}</td><td>{{ s.netto }}</td><td>{{ s.coc }}</td><td>{{ s.van }}</td><td>{{ s.tir }}</td><td>{{ s.multiplo }}</td></tr>
+  {% endfor %}
+</table>
+</div>
+
+<h2>Incertezza (simulazione Monte Carlo)</h2>
+<p>Facendo variare insieme canone, sfitto, crescita del canone e del valore e tasso del mutuo, il TIR mediano è
+<b>{{ sim_mediana }}</b>; in 8 casi su 10 resta tra {{ sim_p10 }} e {{ sim_p90 }}. Il rendimento richiesto è
+raggiunto nel <b>{{ sim_sopra }}</b> degli scenari.</p>
+<div class="grafico">{{ grafici.simulazione | safe }}</div>
+
+<h2>Metodologia</h2>
+<ul>
+  <li>Proiezione annua dei flussi fino alla vendita: canone indicizzato, sfitto, spese a carico della proprietà
+      indicizzate all'inflazione, IMU, imposte sul reddito, rata del mutuo e rimborso del debito residuo alla vendita.</li>
+  <li>Imposte d'acquisto con il criterio del prezzo-valore (registro 9% sul valore catastale) o IVA se si
+      acquista da impresa; imposta sostitutiva del 2% sul mutuo.</li>
+  <li>IMU sulla rendita catastale rivalutata del 5% con moltiplicatore 160, ridotta del 25% a canone concordato.</li>
+  <li>Cedolare secca al 21% (10% a canone concordato) oppure IRPEF marginale e addizionali sul 95% del canone,
+      più metà dell'imposta di registro del contratto. Plusvalenza tassata al 26% solo se si vende entro 5 anni.</li>
+  <li>VAN e TIR calcolati sui flussi del capitale proprio; il prezzo massimo d'offerta è il prezzo che azzera
+      il VAN, ricalcolando imposte, provvigioni e mutuo.</li>
+</ul>
+
+<p class="note">{% if data_note %}{{ data_note }} {% endif %}Documento a scopo illustrativo: non costituisce consulenza
+finanziaria, fiscale o legale. Le aliquote riflettono la normativa italiana vigente in forma semplificata
+(abitazioni non di lusso, persona fisica) e vanno verificate con il proprio commercialista; le proiezioni dipendono
+dalle ipotesi indicate e i risultati effettivi possono differire in modo significativo.</p>
+</body>
+</html>
